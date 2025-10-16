@@ -144,8 +144,9 @@ All benchmark data are available in [`data/ts.csv`](data/ts.csv).
 pore-distribution-matlab/
 │
 ├── data/
-│ ├── ts.csv
-│ ├── time_complexity.png
+│ ├── CT_01/*.bmp 
+│ ├── CT_02/*tif
+│ ├── SinglePore/*bmp
 │
 ├── docs/
 │ ├── an-image-based-method-for-obtaining-pore-size-distribution-of-porous-media.pdf
@@ -244,3 +245,4 @@ When using this implementation in academic or industrial research, please cite t
 ### 📈 Conceptual Summary
 
 **Original approach:**
+
