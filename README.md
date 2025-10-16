@@ -123,24 +123,25 @@ This transformation reduces computational complexity, eliminates nested iteratio
 
 ## 📊 Performance Benchmark
 
-![Computation Time](data/time_complexity.png)
+![Computation Time](results/time_complexity.png)
 
-The figure compares average computation time for the three main implementations:
+The figure compares average computation time for the three main implementations with cube of length 100:
 
 | Version                | Description                    | Avg. Time (s) | Speedup |
 |------------------------|---------------------------------|---------------|----------|
-| Original (Yang 2009)   | Nested-loop implementation      | 58.4          | —        |
-| Optimized Sequential   | Vectorized version              | 0.92          | 63×      |
-| Optimized Parallel     | Multi-core execution (`parfor`) | 0.31          | 188×     |
+| Original (Yang 2009)   | Nested-loop implementation      | 58.07         | —        |
+| Optimized Sequential   | Vectorized version              | 0.48          | 120×     |
+| Optimized Parallel     | Multi-core execution (`parfor`) | 0.18          | 322×     |
 
-All benchmark data are available in [`data/ts.csv`](data/ts.csv).
+All benchmark data are available in [`results/ts.csv`](results/ts.csv).
+
+![Computation Time of Optimized verions with and without parallelism](results/time_complexity_opt.png)
 
 ---
 
 ## 📁 Repository Structure
 
-
-
+```text
 pore-distribution-matlab/
 │
 ├── data/
@@ -158,14 +159,18 @@ pore-distribution-matlab/
 │ ├── load_volume.m
 │ ├── remap_volume.m
 │ ├── benchmark_time_complexity.m
+│ ├── main.m
 │
 ├── results/
-│ ├── benchmark_results.txt
-│ ├── performance_comparison.md
+│ ├── ts.csv
+│ ├── results_optimized_alg.png
+│ ├── results_original_alg.png
+│ ├── time_complexity.png
+│ ├── time_complexity_opt.png
 │
 ├── LICENSE
 └── README.md
-
+```
 
 ---
 
@@ -178,6 +183,7 @@ pore-distribution-matlab/
 | `load_volume.m` | Loads and normalizes CT volume data |
 | `remap_volume.m` | Resamples voxel resolution and remaps physical coordinates |
 | `benchmark_time_complexity.m` | Runs time benchmarking between implementations |
+| `main.m` | Runs a pore distribution for the data |
 
 ---
 
@@ -202,6 +208,19 @@ Unlike traditional porosimetry, it:
 
 ---
 
+## 🧠 Summary of Computational Benefits
+
+| Feature | Original (Yang et al. 2009) | Optimized |
+|----------|------------------------------|------------|
+| Loop depth | 6 nested loops | Fully vectorized |
+| Memory usage | High (`double`) | Reduced (`uint16`, `uint32`) |
+| Parallel support | None | Supported via `parfor` |
+| Scaling with volume | Poor (≈N⁶) | Efficient (≈N³) |
+| Runtime (512³ volume) | ~60 s | ~0.3 s |
+| Result equivalence | Reference standard | Mathematically identical |
+
+---
+
 ## 📚 References
 
 1. **Yang, Z., Peng, X.-F., Lee, D.-J., Chen, M.-Y. (2009)** — *An Image-Based Method for Obtaining Pore-Size Distribution of Porous Media.* Environmental Science & Technology, 43(9), 3248–3253.  
@@ -219,30 +238,7 @@ When using this implementation in academic or industrial research, please cite t
 
 ---
 
-### 🧮 4. Histogram Computation (Re)
 
-| Aspect | Original | Optimized |
-|---------|-----------|-----------|
-| Computation | Computed in triple nested loops per radius voxel. | Uses `histcounts` (or legacy `histc`) for fully vectorized binning. |
-| Data type | Double with fixed 100-element array. | `uint32`, adaptive to detected radius range. |
-| Benefit |  Minimal; constant memory footprint. | Accurate, efficient, and automatically sized histogram. |
 
----
 
-### 🧠 Summary of Computational Benefits
-
-| Feature | Original (Yang et al. 2009) | Optimized |
-|----------|------------------------------|------------|
-| Loop depth | 6 nested loops | Fully vectorized |
-| Memory usage | High (`double`) | Reduced (`uint16`, `uint32`) |
-| Parallel support | None | Supported via `parfor` |
-| Scaling with volume | Poor (≈N⁶) | Efficient (≈N³) |
-| Runtime (512³ volume) | ~60 s | ~0.3 s |
-| Result equivalence | Reference standard | Mathematically identical |
-
----
-
-### 📈 Conceptual Summary
-
-**Original approach:**
 
