@@ -111,7 +111,7 @@ if isempty(volumetricSize)
     rangeY = [1 orig_rows];
     rangeZ = [1 num_images];
 elseif isstring(volumetricSize) || ischar(volumetricSize)
-    if  string(volumetricSize) == "fit"
+    if  isequal(volumetricSize,'fit')
         N = min([orig_rows,orig_cols,num_images]);
         diff_x = round((orig_cols-N)/2);
         diff_y = round((orig_rows-N)/2);
@@ -120,7 +120,7 @@ elseif isstring(volumetricSize) || ischar(volumetricSize)
         rangeY = [diff_y+1 diff_y+N];
         rangeZ = [diff_z+1 diff_z+N];
     else
-        error("Invalid volumetricSize. Provide a invalid name. Must be 'fit'");
+        error('Invalid volumetricSize. Provide a invalid name. Must be "fit"');
     end
 elseif isscalar(volumetricSize)
     N = round(volumetricSize);
