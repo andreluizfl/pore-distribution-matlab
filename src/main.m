@@ -16,7 +16,7 @@ subplot(2,2,4); imshow(C1_opt0(:,:,slice), []); title('C1');
 
 %% Testing CT_01
 dir_src = '..\data\CT_01';
-%extension = '.tif';
+%extension = '.bmp';
 fprintf("Running code 'poredistribution_yang_optimized' for dataset '%s'\n",dir_src);
 
 C_ct1 = load_volume(dir_src);
