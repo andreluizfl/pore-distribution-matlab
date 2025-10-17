@@ -59,16 +59,22 @@ isLegacy = verLessThan('matlab', '9.1'); % compatibility for histcounts/histc
 % -------------------- Parallel capability --------------------
 if useParallel
     try
-        hasParallel = license('test','Distrib_Computing_Toolbox');
+        hasParallel = license('test', 'Distrib_Computing_Toolbox');
         if hasParallel
-            pool = gcp('nocreate');
+            pool = gcp('nocreate');  % Verifica se já existe uma pool
             if isempty(pool)
                 try
-                    parpool('local');
+                    % Tenta criar uma pool baseada em threads
+                    parpool('threads');
                 catch
-                    % unable to start pool; fall back
+                    % Caso falhe, tenta usar a 'local' (process-based)
+                    try
+                        parpool('local');
+                    catch
+                        % Nenhuma pool pôde ser criada — segue sem paralelismo
+                    end
                 end
-                pool = gcp('nocreate');
+                pool = gcp('nocreate');  % Atualiza a referência da pool
             end
             useParallel = ~isempty(pool);
         else

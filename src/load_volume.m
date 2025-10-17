@@ -153,24 +153,24 @@ fprintf('Using volume range: X=[%d %d], Y=[%d %d], Z=[%d %d]\n', ...
 % -------------------- Parallel setup (best-effort) -----------------------
 if useParallel
     try
-        % try to ensure a pool exists; if it fails, fall back to serial
-        hasDCT = license('test', 'Distrib_Computing_Toolbox');
-        if hasDCT
-            delete(gcp("nocreate"));
-            pool = parpool("Threads");
+        hasParallel = license('test', 'Distrib_Computing_Toolbox');
+        if hasParallel
+            pool = gcp('nocreate');  % Verifica se já existe uma pool
             if isempty(pool)
                 try
-                    parpool('local'); %#ok<*PFBNS>
+                    % Tenta criar uma pool baseada em threads
+                    parpool('threads');
                 catch
-                    % fallback silently to serial if pool cannot be created
+                    % Caso falhe, tenta usar a 'local' (process-based)
+                    try
+                        parpool('local');
+                    catch
+                        % Nenhuma pool pôde ser criada — segue sem paralelismo
+                    end
                 end
+                pool = gcp('nocreate');  % Atualiza a referência da pool
             end
-            % pool = gcp('nocreate');
-            if isempty(pool)
-                useParallel = false;
-            else
-                useParallel = true;
-            end
+            useParallel = ~isempty(pool);
         else
             useParallel = false;
         end
@@ -182,50 +182,27 @@ end
 % -------------------- Load images into a single-precision volume ---------
 % We'll normalize integer types to [0,1] for consistent Otsu behavior.
 grayVolume = zeros(rows, cols, num_imgs, 'single');
-
-if useParallel
-    % Use parfor to parallelize reading and normalization per slice
-    parfor ii = 1:num_imgs
-        idxFile = imgs_range(ii);
-        I = imread([imgDir files(idxFile).name]);
-        if ndims(I) == 3
-            I = rgb2gray(I);
-        end
-        I = I(rows_range, cols_range);
-        origClass = class(I);
-        I_single = single(I);
-        switch origClass
-            case 'uint8'
-                I_single = I_single / 255;
-            case 'uint16'
-                I_single = I_single / 65535;
-            otherwise
-                % assume already in [0,1] or floating-point; leave as-is
-        end
-        grayVolume(:, :, ii) = I_single;
+for ii = 1:num_imgs
+    idxFile = imgs_range(ii);
+    I = imread([imgDir files(idxFile).name]);
+    if ndims(I) == 3
+        I = rgb2gray(I);
     end
-else
-    for ii = 1:num_imgs
-        idxFile = imgs_range(ii);
-        I = imread([imgDir files(idxFile).name]);
-        if ndims(I) == 3
-            I = rgb2gray(I);
-        end
-        I = I(rows_range, cols_range);
-        I_single = single(I);
-        % This normalization was writen for safety, but its kind redundant
-        % with graythresh and imbinarize internal operations
-        % origClass = class(I);
-        % switch origClass
-        %     case 'uint8'
-        %         I_single = I_single / 255;
-        %     case 'uint16'
-        %         I_single = I_single / 65535;
-        %     otherwise
-        % end
-        grayVolume(:, :, ii) = I_single;
-    end
+    I = I(rows_range, cols_range);
+    I_single = single(I);
+    % This normalization was writen for safety, but its kind redundant
+    % with graythresh and imbinarize internal operations
+    % origClass = class(I);
+    % switch origClass
+    %     case 'uint8'
+    %         I_single = I_single / 255;
+    %     case 'uint16'
+    %         I_single = I_single / 65535;
+    %     otherwise
+    % end
+    grayVolume(:, :, ii) = I_single;
 end
+
 
 % -------------------- Compute global Otsu threshold if requested ---------
 if binThreshold == -1
